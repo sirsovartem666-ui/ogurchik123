@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>СЕМКА — Нажми на огурца!</title>
+<title>СЕМКА — Легенда интернета</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -13,6 +13,7 @@
     min-height: 100vh;
     overflow: hidden;
     user-select: none;
+    transition: background 0.5s;
   }
 
   h1 {
@@ -46,9 +47,7 @@
     transition: transform 0.1s;
   }
 
-  .photo-wrap:active {
-    transform: scale(0.97);
-  }
+  .photo-wrap:active { transform: scale(0.97); }
 
   .photo-wrap img {
     width: 400px;
@@ -61,11 +60,6 @@
     transition: filter 0.3s;
   }
 
-  .photo-wrap:hover img {
-    filter: brightness(1.1);
-  }
-
-  /* Вращение после 10 кликов */
   .photo-wrap.spinning img {
     animation: spin 0.6s linear infinite;
   }
@@ -86,9 +80,7 @@
     filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
   }
 
-  .cucumber.pop {
-    animation: pop 0.25s ease;
-  }
+  .cucumber.pop { animation: pop 0.25s ease; }
 
   @keyframes pop {
     0% { transform: scale(1); }
@@ -141,9 +133,7 @@
     border: 4px solid #fff;
   }
 
-  .toast.show {
-    transform: translate(-50%, -50%) scale(1);
-  }
+  .toast.show { transform: translate(-50%, -50%) scale(1); }
 
   /* Взрыв */
   .explosion {
@@ -169,11 +159,120 @@
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     text-align: center;
     animation: pulse 1.5s infinite;
+    z-index: 10;
+    pointer-events: none;
   }
 
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.6; }
+  }
+
+  /* === ДОПОЛНИТЕЛЬНЫЕ ФИШКИ === */
+  
+  /* 1. Облачко с фразой */
+  .speech-bubble {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%) scale(0);
+    background: #fff;
+    padding: 12px 20px;
+    border-radius: 20px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border: 3px solid #ff6b6b;
+    z-index: 60;
+    pointer-events: none;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: #ff6b6b;
+  }
+  .speech-bubble.show {
+    transform: translateX(-50%) scale(1);
+  }
+
+  /* 2. Неуловимая кнопка */
+  .evade-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #fff;
+    color: #764ba2;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    border: 3px solid #764ba2;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    z-index: 80;
+    font-size: 0.9em;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+
+  /* 3. Красная кнопка */
+  .danger-btn {
+    position: fixed;
+    top: 15px;
+    left: 20px;
+    background: #ff3333;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 0.9em;
+    cursor: pointer;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    z-index: 80;
+    animation: blink-red 1s infinite;
+  }
+
+  @keyframes blink-red {
+    0%, 100% { background: #ff3333; }
+    50% { background: #990000; }
+  }
+
+  /* Эффект уничтожения */
+  .shake { animation: shake 0.5s infinite; }
+  @keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+  }
+
+  .destroyed-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 0, 0, 0.9);
+    z-index: 999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-size: 4em;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: 5px 5px 0 #000;
+    flex-direction: column;
   }
 </style>
 </head>
@@ -181,11 +280,21 @@
 
 <h1>🥒 СЕМКА И ОГУРЕЦ 🥒</h1>
 
+<!-- Красная кнопка -->
+<button class="danger-btn" onclick="destroySemka()">НЕ НАЖИМАТЬ</button>
+
+<!-- Счетчик -->
 <div class="counter">Кликов: <span id="count">0</span></div>
+
+<!-- Кнопка, которая убегает -->
+<button class="evade-btn" id="evadeBtn" onmouseover="evade()">Отпустите меня</button>
 
 <div class="stage">
   <div class="photo-wrap" id="photoWrap">
-    <img id="photo" src="semka4.jpg" alt="Семка">
+    <!-- Облачко с фразой -->
+    <div class="speech-bubble" id="speechBubble">Привет!</div>
+    <!-- Фото (если semka1.jpg нет, включится заглушка) -->
+    <img id="photo" src="semka1.jpg" alt="Семка" onerror="this.src='https://picsum.photos/400/400?random=1'">
     <div class="cucumber" id="cucumber" style="bottom: -70px; right: -40px;">🥒</div>
   </div>
 </div>
@@ -193,13 +302,28 @@
 <div class="toast" id="toast"></div>
 <div class="hint">👆 Кликай по Семке — огурец растёт!</div>
 
+<!-- Оверлей уничтожения -->
+<div class="destroyed-overlay" id="destroyedOverlay">
+  <div>💥 СЕМКА УНИЧТОЖЕН 💥</div>
+  <div style="font-size: 0.4em; margin-top: 20px;">Обновите страницу, чтобы воскресить</div>
+</div>
+
 <script>
   // ==== НАСТРОЙКИ ====
-  // Замени ссылки на реальные фото Семки (локальные или из интернета)
+  // Замени ссылки на реальные фото Семки (добавь/убери сколько нужно)
   const photos = [
     "semka1.jpg",
     "semka2.jpg",
-    "semka4.jpg",
+    "semka4.jpg"
+  ];
+
+  // ТВОИ НОВЫЕ ФРАЗЫ
+  const phrases = [
+    "ща пацаны курсу дам жсокую",
+    "так огурчиков захотелось",
+    "бля опять полы мыть",
+    "да мне похуй на игру",
+    "я гейский"
   ];
 
   const MAX_CLICKS = 10;
@@ -216,10 +340,12 @@
   const cucumber = document.getElementById('cucumber');
   const countEl = document.getElementById('count');
   const toast = document.getElementById('toast');
+  const speechBubble = document.getElementById('speechBubble');
+  const evadeBtn = document.getElementById('evadeBtn');
 
-  // ==== ОБРАБОТКА КЛИКА ====
+  // ==== ОБРАБОТКА КЛИКА ПО ФОТО ====
   photoWrap.addEventListener('click', () => {
-    if (isSpinning) return; // пока крутится — не считаем
+    if (isSpinning) return; // Блокируем клики во время анимации полета
 
     clicks++;
     countEl.textContent = clicks;
@@ -235,8 +361,11 @@
 
     // Анимация "поп"
     cucumber.classList.remove('pop');
-    void cucumber.offsetWidth;
+    void cucumber.offsetWidth; // Трюк для перезапуска анимации
     cucumber.classList.add('pop');
+
+    // Показываем случайную фразу
+    showSpeech(phrases[Math.floor(Math.random() * phrases.length)]);
 
     // На 10-м клике — запуск вращения и полёта
     if (clicks === MAX_CLICKS) {
@@ -244,28 +373,39 @@
     }
   });
 
+  // ==== ФРАЗЫ ====
+  function showSpeech(text) {
+    speechBubble.textContent = text;
+    speechBubble.classList.add('show');
+    
+    // Скрываем через 1.5 секунды
+    clearTimeout(window.speechTimeout);
+    window.speechTimeout = setTimeout(() => {
+      speechBubble.classList.remove('show');
+    }, 1500);
+  }
+
   // ==== ВРАЩЕНИЕ + ПОЛЁТ ОГУРЦА ====
   function startSpinning() {
     isSpinning = true;
     photoWrap.classList.add('spinning');
-    cucumber.style.display = 'none'; // убираем огурец с места
+    cucumber.style.display = 'none'; // Скрываем огурец, который рос рядом
 
     showToast("🎉 СЕМКА ЗАКРУТИЛСЯ! 🎉");
 
-    // Показываем несколько летящих огурцов
     let flights = 0;
+    // Запускаем 8 огурцов с интервалом
     const flightInterval = setInterval(() => {
       launchCucumber();
       flights++;
       if (flights >= 8) {
         clearInterval(flightInterval);
-        // Через время останавливаем
+        // Через 3 секунды всё останавливаем
         setTimeout(stopEverything, 3000);
       }
     }, 250);
 
-    // Первый огурец — сразу
-    launchCucumber();
+    launchCucumber(); // Первый огурец сразу
   }
 
   function launchCucumber() {
@@ -273,10 +413,11 @@
     flying.className = 'flying-cucumber';
     flying.textContent = '🥒';
 
-    // Старт с рандомной стороны
+    // Рандомная сторона старта
     const startSide = Math.floor(Math.random() * 4);
     let startX, startY;
     const w = window.innerWidth, h = window.innerHeight;
+    
     if (startSide === 0) { startX = -100; startY = Math.random() * h; }
     else if (startSide === 1) { startX = w + 100; startY = Math.random() * h; }
     else if (startSide === 2) { startX = Math.random() * w; startY = -100; }
@@ -285,25 +426,25 @@
     flying.style.left = startX + 'px';
     flying.style.top = startY + 'px';
 
-    // Цель — центр фото
+    // Цель — центр фото Семки
     const rect = photo.getBoundingClientRect();
     const targetX = rect.left + rect.width / 2;
     const targetY = rect.top + rect.height / 2;
 
     document.body.appendChild(flying);
 
-    // Анимируем полёт через requestAnimationFrame
     const startTime = performance.now();
     const duration = 500 + Math.random() * 300;
 
+    // Анимация полета
     function animate(now) {
       const t = Math.min((now - startTime) / duration, 1);
-      // ease-in
-      const e = t * t;
+      const e = t * t; // ease-in
       const x = startX + (targetX - startX) * e;
       const y = startY + (targetY - startY) * e;
       const rotate = t * 720;
       const scale = 1 + Math.sin(t * Math.PI) * 0.5;
+      
       flying.style.left = x + 'px';
       flying.style.top = y + 'px';
       flying.style.transform = `translate(-50%, -50%) rotate(${rotate}deg) scale(${scale})`;
@@ -311,7 +452,7 @@
       if (t < 1) {
         requestAnimationFrame(animate);
       } else {
-        // Попал!
+        // Прилетел в цель
         flying.remove();
         spawnExplosion(targetX, targetY);
       }
@@ -319,6 +460,7 @@
     requestAnimationFrame(animate);
   }
 
+  // Эффект взрыва при попадании
   function spawnExplosion(x, y) {
     const boom = document.createElement('div');
     boom.className = 'explosion';
@@ -329,6 +471,7 @@
     setTimeout(() => boom.remove(), 800);
   }
 
+  // Остановка анимации и сброс состояния
   function stopEverything() {
     photoWrap.classList.remove('spinning');
     cucumber.style.display = 'block';
@@ -343,6 +486,36 @@
     toast.textContent = text;
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 1500);
+  }
+
+  // ==== НЕУЛОВИМАЯ КНОПКА ====
+  function evade() {
+    if (!evadeBtn) return;
+    
+    // Случайные координаты в пределах экрана
+    const maxX = window.innerWidth - evadeBtn.offsetWidth - 20;
+    const maxY = window.innerHeight - evadeBtn.offsetHeight - 20;
+    
+    const newX = Math.max(20, Math.random() * maxX);
+    const newY = Math.max(20, Math.random() * maxY);
+    
+    // Телепортируем
+    evadeBtn.style.left = newX + 'px';
+    evadeBtn.style.top = newY + 'px';
+    evadeBtn.style.bottom = 'auto';
+    evadeBtn.style.right = 'auto';
+  }
+
+  // ==== УНИЧТОЖЕНИЕ ====
+  function destroySemka() {
+    document.body.classList.add('shake');
+    document.getElementById('destroyedOverlay').style.display = 'flex';
+    
+    // Трясем 2 секунды и перезагружаем
+    setTimeout(() => {
+      document.body.classList.remove('shake');
+      location.reload();
+    }, 2000);
   }
 </script>
 </body>
